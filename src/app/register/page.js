@@ -1,10 +1,11 @@
-import RegForm from '@/components/forms/RegForm';
+import RegForm from "@/components/forms/RegForm";
+import Navbar from "@/components/layout/Navbar";
 
-
-export default function register() {
-    return (
-        <div className='flex flex-col w-screen min-h-screen items-center justify-start'>
-            <RegForm />
-        </div>
-    )
+export default function RegisterPage() {
+  return (
+    <div className="flex min-h-dvh w-full flex-col bg-[var(--stone)]">
+      <Navbar />
+      <RegForm />
+    </div>
+  );
 }

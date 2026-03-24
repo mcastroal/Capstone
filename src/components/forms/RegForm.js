@@ -76,24 +76,8 @@ export default function Register() {
   };
 
   return (
-    <main className="flex min-h-screen w-full flex-col bg-[var(--slate)] text-[var(--ink)]">
-      <header className="w-full bg-[var(--clay)] text-[var(--storm-blue)] shadow-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="text-3xl font-extrabold tracking-tight">
-            NakPath
-          </Link>
-          <nav className="flex items-center gap-6 text-lg font-semibold">
-            <Link href="/login" className="transition hover:opacity-80">
-              Login
-            </Link>
-            <Link href="/register" className="transition hover:opacity-80">
-              Register
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <section className="flex flex-1 items-start justify-center px-4 pb-12 pt-10 sm:pt-14">
+    <main className="w-full bg-[var(--stone)] pb-10 pt-8 text-[var(--ink)]">
+      <section className="mx-auto flex max-w-6xl items-start justify-center px-4 sm:px-6">
         <div className="w-full max-w-md rounded-[2rem] bg-[var(--stone)] p-6 shadow-xl sm:p-8">
           <h1 className="mb-6 text-center text-4xl font-bold text-[var(--ink)]">Register</h1>
 
