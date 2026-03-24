@@ -31,7 +31,8 @@ export default function Register() {
     setIsSubmitting(true);
 
     const payload = {
-      name: `${form.firstName} ${form.lastName}`.trim(),
+      first_name: form.firstName.trim(),
+      last_name: form.lastName.trim(),
       email: form.email.trim().toLowerCase(),
       password: form.password,
       role: form.role,
