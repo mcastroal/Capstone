@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function CoachStudentsPage() {
+  const [coachCode, setCoachCode] = useState(null);
   const [fighters, setFighters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,13 +23,16 @@ export default function CoachStudentsPage() {
 
       if (!res.ok) {
         setError(data.message || "Could not load fighters.");
+        setCoachCode(null);
         setFighters([]);
         return;
       }
 
+      setCoachCode(data.coachCode ?? null);
       setFighters(data.fighters ?? []);
     } catch {
       setError("Network error.");
+      setCoachCode(null);
       setFighters([]);
     } finally {
       setLoading(false);
@@ -49,6 +53,14 @@ export default function CoachStudentsPage() {
           <p className="mt-1 text-sm text-[var(--slate)]">
             Select a fighter to view sessions and send coach notes.
           </p>
+          {coachCode ? (
+            <p className="mt-2 text-sm text-[var(--storm-blue)]">
+              Your coach code:{" "}
+              <span className="rounded-lg bg-[var(--rain)]/40 px-2 py-0.5 font-mono font-semibold">
+                {coachCode}
+              </span>
+            </p>
+          ) : null}
         </div>
       </div>
 

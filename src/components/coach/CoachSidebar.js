@@ -31,6 +31,14 @@ function IconChart(props) {
   );
 }
 
+function IconSessionLog(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconLogout(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -51,6 +59,7 @@ export default function CoachSidebar({ collapsed, onToggleCollapse, userName, us
   const nav = useMemo(
     () => [
       { href: "/coach", label: "Coach Dashboard", icon: IconDashboard },
+      { href: "/coach/log-session", label: "Log group session", icon: IconSessionLog },
       { href: "/coach/students", label: "Fighters", icon: IconUsers },
       { href: "/insights", label: "AI Insights", icon: IconChart },
     ],
@@ -95,7 +104,7 @@ export default function CoachSidebar({ collapsed, onToggleCollapse, userName, us
         {nav.map((item) => {
           const active =
             item.href === "/coach"
-              ? pathname === "/coach" || pathname.startsWith("/coach/")
+              ? pathname === "/coach"
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           const Icon = item.icon;

@@ -6,10 +6,11 @@ import { db } from "@/lib/db";
 export async function POST(req) {
   try {
     const { email, password } = await req.json();
+    const emailNorm = typeof email === "string" ? email.trim().toLowerCase() : "";
 
     const [rows] = await db.execute(
-      "SELECT * FROM users WHERE email = ?", 
-      [email]
+      "SELECT * FROM users WHERE email = ?",
+      [emailNorm]
     );
 
     const user = rows[0];
@@ -33,24 +34,30 @@ export async function POST(req) {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role }, 
-      process.env.JWT_SECRET, 
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    return nextResponse.json({
+    const displayName = [user.first_name, user.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    return NextResponse.json({
       success: true,
       token,
       user: {
         id: user.id,
-        name: user.name,
+        name: displayName || user.email,
         role: user.role,
+        coach_code: user.coach_code ?? null,
       },
     });
 
   } catch (error) {
     console.error("Error logging in:", error);
-    return nextResponse.json(
+    return NextResponse.json(
       { message: "Internal server error" }, 
       { status: 500 }
     );

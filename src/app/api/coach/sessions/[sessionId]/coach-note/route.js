@@ -11,7 +11,8 @@ export async function POST(req, { params }) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const sessionId = Number(params.sessionId);
+  const { sessionId: sessionIdRaw } = await params;
+  const sessionId = Number(sessionIdRaw);
   if (!Number.isFinite(sessionId) || sessionId < 1) {
     return NextResponse.json({ message: "Invalid session id." }, { status: 400 });
   }
@@ -33,27 +34,28 @@ export async function POST(req, { params }) {
   try {
     const [result] = await db.execute(
       `
-      UPDATE training_sessions ts
-      JOIN users u ON u.id = ts.user_id
-      SET ts.notes =
+      UPDATE training_sessions AS ts
+      INNER JOIN users AS fighter ON fighter.id = ts.user_id AND fighter.role = 'fighter'
+      INNER JOIN users AS coach ON coach.id = ? AND coach.role = 'coach'
+      SET ts.coach_notes =
         CASE
-          WHEN ts.notes IS NULL OR ts.notes = '' THEN CONCAT('Coach: ', ?)
-          ELSE CONCAT(ts.notes, '\\n\\nCoach: ', ?)
-        END
+          WHEN ts.coach_notes IS NULL OR ts.coach_notes = '' THEN ?
+          ELSE CONCAT(ts.coach_notes, '\\n\\n', ?)
+        END,
+        ts.coach_notes_unread = 1
       WHERE ts.id = ?
-        AND u.role = 'fighter'
-        AND u.coach_code = (
-          SELECT coach_code
-          FROM users
-          WHERE id = ? AND role = 'coach'
-        )
+        AND fighter.coach_code IS NOT NULL
+        AND fighter.coach_code = coach.coach_code
       `,
-      [safeNote, safeNote, sessionId, auth.id],
+      [auth.id, safeNote, safeNote, sessionId],
     );
 
     if (!result || result.affectedRows === 0) {
       return NextResponse.json(
-        { message: "Session not found, or you do not have access." },
+        {
+          message:
+            "Could not save: session missing, fighter not linked to your coach code, or wrong session id. Ensure the fighter added your coach code on their account.",
+        },
         { status: 404 },
       );
     }
@@ -62,7 +64,7 @@ export async function POST(req, { params }) {
   } catch (error) {
     console.error("POST /api/coach/sessions/:sessionId/coach-note:", error);
     return NextResponse.json(
-      { message: "Could not save coach note." },
+      { message: "Could not save coach comment. Did you run add_coach_notes_to_training_sessions.sql?" },
       { status: 500 },
     );
   }

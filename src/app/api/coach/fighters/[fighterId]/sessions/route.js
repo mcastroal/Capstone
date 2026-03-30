@@ -21,7 +21,8 @@ export async function GET(req, { params }) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const fighterId = Number(params.fighterId);
+  const { fighterId: fighterIdRaw } = await params;
+  const fighterId = Number(fighterIdRaw);
   if (!Number.isFinite(fighterId) || fighterId < 1) {
     return NextResponse.json({ message: "Invalid fighter id." }, { status: 400 });
   }
@@ -48,6 +49,8 @@ export async function GET(req, { params }) {
           ts.session_type,
           ts.intensity,
           ts.notes,
+          ts.coach_notes,
+          ts.coach_notes_unread,
           ts.created_at,
           u.first_name,
           u.last_name
@@ -69,6 +72,8 @@ export async function GET(req, { params }) {
       session_type: row.session_type,
       intensity: row.intensity,
       notes: row.notes,
+      coach_notes: row.coach_notes,
+      coach_notes_unread: Number(row.coach_notes_unread) === 1,
       created_at:
         row.created_at instanceof Date
           ? row.created_at.toISOString()

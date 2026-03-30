@@ -34,7 +34,10 @@ export async function GET(req) {
       ["fighter", coach.coach_code],
     );
 
-    return NextResponse.json({ fighters: rows });
+    return NextResponse.json({
+      coachCode: coach.coach_code,
+      fighters: rows,
+    });
   } catch (error) {
     console.error("GET /api/coach/fighters:", error);
     return NextResponse.json(

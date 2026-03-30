@@ -23,8 +23,11 @@ export async function POST(req) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate coach code if coach
-    const generatedCode = role === "coach" ? Math.random().toString(36).substring(2, 8) : null;
+    const normalizedCoachCode =
+      typeof coachCode === "string" && coachCode.trim() ? coachCode.trim() : null;
+
+    // Generate a coach code for coaches; for fighters, store the provided coach code (if any).
+    const generatedCode = role === "coach" ? Math.random().toString(36).substring(2, 8) : normalizedCoachCode;
 
     // Insert user into database
     await db.execute(

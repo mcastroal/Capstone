@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDashboardFilter } from "@/components/dashboard/DashboardFilterContext";
+import SessionEditModal from "@/components/dashboard/SessionEditModal";
 
 function formatDisplayDate(iso) {
   if (!iso) return "";
@@ -22,6 +23,7 @@ export default function HistoryPage() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingSession, setEditingSession] = useState(null);
 
   const load = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -54,10 +56,30 @@ export default function HistoryPage() {
   const q = sessionSearch.trim().toLowerCase();
   const filtered = q
     ? sessions.filter((s) => {
-        const hay = `${s.session_type} ${s.intensity ?? ""} ${s.notes ?? ""}`.toLowerCase();
+        const hay = `${s.session_type} ${s.intensity ?? ""} ${s.notes ?? ""} ${s.coach_notes ?? ""}`
+          .toLowerCase();
         return hay.includes(q);
       })
     : sessions;
+
+  const unreadCoachNotesCount = useMemo(
+    () =>
+      sessions.filter(
+        (s) =>
+          s.coach_notes &&
+          String(s.coach_notes).trim() !== "" &&
+          (s.coach_notes_unread === true || Number(s.coach_notes_unread) === 1),
+      ).length,
+    [sessions],
+  );
+
+  function sessionHasUnreadCoach(s) {
+    return (
+      s.coach_notes &&
+      String(s.coach_notes).trim() !== "" &&
+      (s.coach_notes_unread === true || Number(s.coach_notes_unread) === 1)
+    );
+  }
 
   return (
     <div>
@@ -76,6 +98,19 @@ export default function HistoryPage() {
         </Link>
       </div>
 
+      {unreadCoachNotesCount > 0 ? (
+        <div
+          className="mt-6 rounded-2xl bg-[var(--ochre)]/20 px-4 py-3 ring-2 ring-[var(--ochre)]/35"
+          role="alert"
+        >
+          <p className="font-semibold text-[var(--storm-blue)]">New coach comments</p>
+          <p className="mt-1 text-sm text-[var(--slate)]">
+            {unreadCoachNotesCount} session{unreadCoachNotesCount === 1 ? "" : "s"} with unread coach
+            feedback. Click a session to read comments.
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-8 rounded-3xl bg-[var(--storm-blue)] p-4 sm:p-6">
         {loading ? (
           <p className="py-12 text-center text-white/80">Loading…</p>
@@ -92,10 +127,26 @@ export default function HistoryPage() {
             {filtered.map((s) => (
               <li
                 key={s.id}
-                className="rounded-2xl bg-[var(--stone)] px-5 py-4 text-[var(--storm-blue)] shadow-md"
+                className="cursor-pointer rounded-2xl bg-[var(--stone)] px-5 py-4 text-[var(--storm-blue)] shadow-md transition hover:bg-white/90 hover:ring-1 hover:ring-[var(--storm-blue)]/15"
+                role="button"
+                tabIndex={0}
+                onClick={() => setEditingSession(s)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setEditingSession(s);
+                  }
+                }}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-lg font-semibold">{s.session_type}</h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-lg font-semibold">{s.session_type}</h2>
+                    {sessionHasUnreadCoach(s) ? (
+                      <span className="rounded-full bg-[var(--ochre)] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                        New comment
+                      </span>
+                    ) : null}
+                  </div>
                   <time className="text-sm font-medium opacity-75">{formatDisplayDate(s.session_date)}</time>
                 </div>
                 <p className="mt-1 text-sm opacity-80">
@@ -103,11 +154,28 @@ export default function HistoryPage() {
                   {s.intensity ? ` · ${s.intensity}` : ""}
                 </p>
                 {s.notes ? <p className="mt-2 text-sm leading-relaxed opacity-90">{s.notes}</p> : null}
+                {s.coach_notes && String(s.coach_notes).trim() ? (
+                  <div className="mt-3 rounded-xl bg-[var(--ochre)]/15 px-3 py-2 ring-1 ring-[var(--ochre)]/30">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--clay)]">
+                      Coach comments
+                    </p>
+                    <p className="mt-1 max-h-36 overflow-y-auto whitespace-pre-wrap text-sm text-[var(--storm-blue)]">
+                      {s.coach_notes}
+                    </p>
+                  </div>
+                ) : null}
+                <p className="mt-3 text-xs font-medium text-[var(--slate)]">Click to edit or delete</p>
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      <SessionEditModal
+        session={editingSession}
+        onClose={() => setEditingSession(null)}
+        onSaved={load}
+      />
     </div>
   );
 }
