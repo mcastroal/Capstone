@@ -72,7 +72,7 @@ export function CTA() {
           className="mx-auto mb-10 max-w-2xl text-xl"
           style={{ color: "var(--slate)" }}
         >
-          Join thousands of fighters who are already tracking their journey to mastery with
+          Join hundreds of fighters who are already tracking their journey to mastery with
           NakPath.
         </p>
 
