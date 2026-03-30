@@ -1,17 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-
-const TYPES = [
-  "Pads / mitts",
-  "Bag work",
-  "Sparring",
-  "Clinch",
-  "Technique / drills",
-  "Conditioning",
-  "Other",
-];
+import { useEffect, useState } from "react";
+import { SESSION_TECHNIQUES } from "@/lib/sessionTypes";
 
 function defaultDate() {
   const d = new Date();
@@ -26,16 +18,58 @@ export default function SessionForm() {
   const [form, setForm] = useState({
     session_date: defaultDate(),
     duration_minutes: "60",
-    session_type: TYPES[0],
     intensity: "Moderate",
     notes: "",
   });
+  const [selectedTechniques, setSelectedTechniques] = useState([SESSION_TECHNIQUES[0]]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [unreadCoachCount, setUnreadCoachCount] = useState(0);
+  const [coachPreview, setCoachPreview] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/sessions", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok || !data.sessions) return;
+        const list = data.sessions;
+        const unread =
+          typeof data.unreadCoachNotesCount === "number"
+            ? data.unreadCoachNotesCount
+            : list.filter(
+                (s) =>
+                  s.coach_notes &&
+                  String(s.coach_notes).trim() !== "" &&
+                  (s.coach_notes_unread === true || Number(s.coach_notes_unread) === 1),
+              ).length;
+        setUnreadCoachCount(unread);
+        const latest = list.find((s) => s.coach_notes && String(s.coach_notes).trim());
+        setCoachPreview(latest?.coach_notes ? String(latest.coach_notes).slice(0, 800) : "");
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
+
+  function toggleTechnique(name) {
+    setSelectedTechniques((prev) =>
+      prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name],
+    );
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    if (selectedTechniques.length === 0) {
+      setError("Select at least one technique.");
+      return;
+    }
+
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
@@ -53,7 +87,7 @@ export default function SessionForm() {
         body: JSON.stringify({
           session_date: form.session_date,
           duration_minutes: Number(form.duration_minutes),
-          session_type: form.session_type,
+          session_type: selectedTechniques,
           intensity: form.intensity || null,
           notes: form.notes.trim() || null,
         }),
@@ -83,6 +117,30 @@ export default function SessionForm() {
           Record what you did today — rounds, focus, and how hard you pushed.
         </p>
       </div>
+
+      {unreadCoachCount > 0 ? (
+        <div
+          className="rounded-2xl bg-[var(--ochre)]/20 px-4 py-3 ring-2 ring-[var(--ochre)]/40"
+          role="alert"
+        >
+          <p className="font-semibold text-[var(--storm-blue)]">You have new coach comments</p>
+          <p className="mt-1 text-sm text-[var(--slate)]">
+            Your coach left feedback on {unreadCoachCount} session{unreadCoachCount === 1 ? "" : "s"}.
+            Open those sessions on your{" "}
+            <Link href="/dashboard" className="font-semibold text-[var(--storm-blue)] underline">
+              dashboard
+            </Link>{" "}
+            or{" "}
+            <Link
+              href="/dashboard/history"
+              className="font-semibold text-[var(--storm-blue)] underline"
+            >
+              past sessions
+            </Link>{" "}
+            to read them.
+          </p>
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <label htmlFor="session_date" className="text-sm font-semibold text-[var(--storm-blue)]">
@@ -114,23 +172,28 @@ export default function SessionForm() {
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="session_type" className="text-sm font-semibold text-[var(--storm-blue)]">
-          Session focus
-        </label>
-        <select
-          id="session_type"
-          value={form.session_type}
-          onChange={(e) => setForm((f) => ({ ...f, session_type: e.target.value }))}
-          className="w-full rounded-2xl border-0 bg-[var(--stone)] px-4 py-3 text-[var(--storm-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-        >
-          {TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-semibold text-[var(--storm-blue)]">
+          Techniques / session focus
+        </legend>
+        <p className="text-xs text-[var(--slate)]">Select all that apply.</p>
+        <div className="flex flex-col gap-2 rounded-2xl bg-[var(--stone)] p-3">
+          {SESSION_TECHNIQUES.map((t) => (
+            <label
+              key={t}
+              className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 text-sm text-[var(--storm-blue)] hover:bg-white/60"
+            >
+              <input
+                type="checkbox"
+                checked={selectedTechniques.includes(t)}
+                onChange={() => toggleTechnique(t)}
+                className="h-4 w-4 rounded border-[var(--storm-blue)]/30 text-[var(--storm-blue)] focus:ring-[var(--rain)]"
+              />
+              <span>{t}</span>
+            </label>
           ))}
-        </select>
-      </div>
+        </div>
+      </fieldset>
 
       <fieldset className="space-y-2">
         <legend className="text-sm font-semibold text-[var(--storm-blue)]">Intensity</legend>
@@ -159,8 +222,28 @@ export default function SessionForm() {
       </fieldset>
 
       <div className="space-y-2">
+        <label htmlFor="coach-comments-preview" className="text-sm font-semibold text-[var(--storm-blue)]">
+          Coach comments
+        </label>
+        <p className="text-xs text-[var(--slate)]">
+          Your coach adds feedback on sessions you have already logged. You cannot edit this box — it
+          is read-only. Latest comment preview:
+        </p>
+        <textarea
+          id="coach-comments-preview"
+          readOnly
+          rows={coachPreview ? 5 : 3}
+          value={
+            coachPreview ||
+            "No coach comments yet. After you save this session, your coach can comment from their dashboard."
+          }
+          className="w-full resize-none rounded-2xl border border-[var(--ochre)]/30 bg-[var(--ochre)]/5 px-4 py-3 text-sm text-[var(--storm-blue)] focus:outline-none"
+        />
+      </div>
+
+      <div className="space-y-2">
         <label htmlFor="notes" className="text-sm font-semibold text-[var(--storm-blue)]">
-          Notes <span className="font-normal text-[var(--slate)]">(optional)</span>
+          Your notes <span className="font-normal text-[var(--slate)]">(optional)</span>
         </label>
         <textarea
           id="notes"
