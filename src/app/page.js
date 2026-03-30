@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import Hero from "@/components/sections/Hero";
 import { CTA } from "@/components/sections/CTA";
 
@@ -9,6 +9,7 @@ export default function HomePage() {
       <Navbar />
       <Hero />
       <CTA />
+      <Footer />
     </main>
   );
 }
