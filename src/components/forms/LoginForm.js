@@ -24,10 +24,28 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  function validate() {
+    const email = String(form.email ?? "").trim();
+    const password = String(form.password ?? "");
+
+    if (!email) return "Please enter your email.";
+    // Simple email format check to avoid browser default popups.
+    if (!/^\S+@\S+\.\S+$/.test(email)) return "Please enter a valid email address.";
+    if (!password) return "Please enter your password.";
+    return "";
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -41,10 +59,18 @@ export default function Login() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.message || "Invalid credentials.");
+        if (res.status === 401) {
+          setError("Email or password is incorrect.");
+          return;
+        }
+        if (res.status === 400) {
+          setError(data.message || "Please check your email and password.");
+          return;
+        }
+        setError(data.message || "Login failed. Please try again.");
         return;
       }
 
@@ -59,7 +85,7 @@ export default function Login() {
         data.user?.role === "coach" ? "/coach" : nextPath || "/dashboard";
       router.push(destination);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,14 +98,13 @@ export default function Login() {
           <h2 className="text-3xl font-bold text-[var(--storm-blue)] sm:text-4xl">Welcome back</h2>
           <p className="mt-2 text-sm text-[var(--slate)]">Sign in to continue to your fighter dashboard.</p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form noValidate onSubmit={handleSubmit} className="mt-6 space-y-4">
             <input
               type="email"
               placeholder="Email"
               value={form.email}
               onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
               className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-              required
             />
             <input
               type="password"
@@ -87,7 +112,6 @@ export default function Login() {
               value={form.password}
               onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
               className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-              required
             />
 
             {error && <p className="text-sm font-medium text-red-700">{error}</p>}

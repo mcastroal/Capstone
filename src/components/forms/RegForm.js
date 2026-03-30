@@ -15,7 +15,26 @@ export default function Register() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  function validateFields() {
+    const firstName = String(form.firstName ?? "").trim();
+    const lastName = String(form.lastName ?? "").trim();
+    const email = String(form.email ?? "").trim();
+    const password = String(form.password ?? "");
+
+    if (!firstName) return "Please enter your first name.";
+    if (!lastName) return "Please enter your last name.";
+    if (!email) return "Please enter your email.";
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+      return 'Enter a valid email with "@" and a domain (for example, alex@example.com).';
+    }
+    if (!password) return "Please enter your password.";
+    if (password.length < 6) return "Password must be at least 6 characters.";
+    return "";
+  }
+
   const handleChange = (field, value) => {
+    setError("");
     if (field === "role" && value === "coach") {
       setForm((prev) => ({ ...prev, role: value, coachCode: "" }));
       return;
@@ -29,6 +48,13 @@ export default function Register() {
     setError("");
     setMessage("");
     setIsSubmitting(true);
+
+    const validationError = validateFields();
+    if (validationError) {
+      setError(validationError);
+      setIsSubmitting(false);
+      return;
+    }
 
     const payload = {
       first_name: form.firstName.trim(),
@@ -48,13 +74,27 @@ export default function Register() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.message || "Could not create account.");
+        if (res.status === 400) {
+          const msg = String(data.message || "");
+          if (msg.toLowerCase().includes("missing")) {
+            setError("Please fill in all required fields.");
+            return;
+          }
+          if (msg.toLowerCase().includes("already")) {
+            setError("That email is already registered. Please log in instead.");
+            return;
+          }
+          setError(data.message || "Please check your details and try again.");
+          return;
+        }
+        setError(data.message || "Could not create account. Please try again.");
         return;
       }
 
+      setError("");
       setMessage(
         data.coachCode
           ? `Account created! Your coach code is: ${data.coachCode}`
@@ -69,7 +109,7 @@ export default function Register() {
         coachCode: "",
       });
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -84,14 +124,13 @@ export default function Register() {
             Sign up to start tracking sessions and build your training plan.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form noValidate onSubmit={handleSubmit} className="mt-6 space-y-4">
             <input
               type="text"
               placeholder="First Name"
               value={form.firstName}
               onChange={(e) => handleChange("firstName", e.target.value)}
               className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-              required
             />
             <input
               type="text"
@@ -99,15 +138,14 @@ export default function Register() {
               value={form.lastName}
               onChange={(e) => handleChange("lastName", e.target.value)}
               className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-              required
             />
             <input
               type="email"
               placeholder="Email"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
+              autoComplete="email"
               className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-              required
             />
             <input
               type="password"
@@ -115,8 +153,6 @@ export default function Register() {
               value={form.password}
               onChange={(e) => handleChange("password", e.target.value)}
               className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
-              required
-              minLength={6}
             />
 
             <select
@@ -138,8 +174,18 @@ export default function Register() {
               />
             )}
 
-            {error && <p className="text-sm font-medium text-red-700">{error}</p>}
-            {message && <p className="text-sm font-medium text-green-700">{message}</p>}
+            <div className="space-y-2 pt-1">
+              {error ? (
+                <p className="text-sm font-medium text-red-700" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              {message ? (
+                <p className="text-sm font-medium text-green-700" role="status">
+                  {message}
+                </p>
+              ) : null}
+            </div>
 
             <button
               type="submit"
