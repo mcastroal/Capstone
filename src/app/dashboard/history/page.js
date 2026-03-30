@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDashboardFilter } from "@/components/dashboard/DashboardFilterContext";
+import DashboardSessionSearch from "@/components/dashboard/DashboardSessionSearch";
 import SessionEditModal from "@/components/dashboard/SessionEditModal";
 
 function formatDisplayDate(iso) {
@@ -112,6 +113,7 @@ export default function HistoryPage() {
       ) : null}
 
       <div className="mt-8 rounded-3xl bg-[var(--storm-blue)] p-4 sm:p-6">
+        <DashboardSessionSearch inputId="dashboard-history-search" />
         {loading ? (
           <p className="py-12 text-center text-white/80">Loading…</p>
         ) : error ? (

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDashboardFilter } from "./DashboardFilterContext";
+import DashboardSessionSearch from "./DashboardSessionSearch";
 import SessionEditModal from "./SessionEditModal";
 
 function todayISO() {
@@ -342,6 +343,7 @@ export default function DashboardHome({ welcomeName }) {
             Past sessions
           </h2>
           <div className="mt-4 min-h-[280px] rounded-3xl bg-[var(--storm-blue)] p-4 shadow-inner sm:p-5">
+            <DashboardSessionSearch inputId="dashboard-home-past-search" />
             {loading ? (
               <p className="p-4 text-center text-white/80">Loading…</p>
             ) : displayPastSessions.length === 0 ? (
