@@ -77,17 +77,20 @@ export default function Register() {
 
   return (
     <main className="w-full bg-[var(--stone)] pb-10 pt-8 text-[var(--ink)]">
-      <section className="mx-auto flex max-w-6xl items-start justify-center px-4 sm:px-6">
-        <div className="w-full max-w-md rounded-[2rem] bg-[var(--stone)] p-6 shadow-xl sm:p-8">
-          <h1 className="mb-6 text-center text-4xl font-bold text-[var(--ink)]">Register</h1>
+      <div className="mx-auto flex max-w-6xl items-center justify-center px-4 sm:px-6">
+        <section className="w-full max-w-md rounded-[2rem] bg-white/85 p-6 shadow-xl ring-1 ring-[var(--storm-blue)]/15 sm:p-8">
+          <h2 className="text-3xl font-bold text-[var(--storm-blue)] sm:text-4xl">Create account</h2>
+          <p className="mt-2 text-sm text-[var(--slate)]">
+            Sign up to start tracking sessions and build your training plan.
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <input
               type="text"
               placeholder="First Name"
               value={form.firstName}
               onChange={(e) => handleChange("firstName", e.target.value)}
-              className="w-full rounded-2xl border-2 border-transparent bg-[var(--rain)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--storm-blue)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
+              className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
               required
             />
             <input
@@ -95,7 +98,7 @@ export default function Register() {
               placeholder="Last Name"
               value={form.lastName}
               onChange={(e) => handleChange("lastName", e.target.value)}
-              className="w-full rounded-2xl border-2 border-transparent bg-[var(--rain)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--storm-blue)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
+              className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
               required
             />
             <input
@@ -103,7 +106,7 @@ export default function Register() {
               placeholder="Email"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
-              className="w-full rounded-2xl border-2 border-transparent bg-[var(--rain)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--storm-blue)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
+              className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
               required
             />
             <input
@@ -111,7 +114,7 @@ export default function Register() {
               placeholder="Password"
               value={form.password}
               onChange={(e) => handleChange("password", e.target.value)}
-              className="w-full rounded-2xl border-2 border-transparent bg-[var(--rain)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--storm-blue)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
+              className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
               required
               minLength={6}
             />
@@ -119,7 +122,7 @@ export default function Register() {
             <select
               value={form.role}
               onChange={(e) => handleChange("role", e.target.value)}
-              className="w-full rounded-2xl border-2 border-transparent bg-[var(--rain)] px-4 py-3 text-base text-[var(--storm-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
+              className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
             >
               <option value="fighter">Fighter</option>
               <option value="coach">Coach</option>
@@ -131,7 +134,7 @@ export default function Register() {
                 placeholder="Coach Code (optional)"
                 value={form.coachCode}
                 onChange={(e) => handleChange("coachCode", e.target.value)}
-                className="w-full rounded-2xl border-2 border-transparent bg-[var(--rain)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--storm-blue)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
+                className="w-full rounded-2xl border border-[var(--rain)]/50 bg-[var(--stone)] px-4 py-3 text-base text-[var(--storm-blue)] placeholder:text-[var(--slate)] focus:outline-none focus:ring-2 focus:ring-[var(--rain)]"
               />
             )}
 
@@ -141,20 +144,20 @@ export default function Register() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-1 w-full rounded-full bg-[var(--clay)] px-5 py-3 text-2xl font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-full bg-[var(--storm-blue)] px-5 py-3 text-lg font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting ? "Creating account..." : "Register"}
             </button>
           </form>
 
-          <p className="mt-4 text-center text-lg text-[var(--storm-blue)]">
+          <p className="mt-5 text-center text-sm text-[var(--slate)]">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold underline">
+            <Link href="/login" className="font-semibold text-[var(--storm-blue)] underline">
               Login
             </Link>
           </p>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
