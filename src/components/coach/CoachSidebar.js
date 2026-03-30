@@ -61,7 +61,7 @@ export default function CoachSidebar({ collapsed, onToggleCollapse, userName, us
       { href: "/coach", label: "Coach Dashboard", icon: IconDashboard },
       { href: "/coach/log-session", label: "Log group session", icon: IconSessionLog },
       { href: "/coach/students", label: "Fighters", icon: IconUsers },
-      { href: "/insights", label: "AI Insights", icon: IconChart },
+      { href: "/coach/insights", label: "AI training plans", icon: IconChart },
     ],
     [],
   );

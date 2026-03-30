@@ -49,11 +49,6 @@ export default function CoachDashboardPage() {
   const [noteComposerFor, setNoteComposerFor] = useState(null);
   const [coachNoteDrafts, setCoachNoteDrafts] = useState({});
 
-  const [coachGoal, setCoachGoal] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState("");
-  const [aiInsights, setAiInsights] = useState("");
-
   const filteredFighter = useMemo(
     () =>
       filterFighterId != null
@@ -184,54 +179,6 @@ export default function CoachDashboardPage() {
     }
   }
 
-  async function generatePlan() {
-    setAiError("");
-    setAiInsights("");
-
-    if (displaySessions.length === 0) return;
-
-    setAiLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const capped = displaySessions.slice(0, 40);
-      const sessionsForAi = capped.map((s) => ({
-        ...s,
-        fighter_name:
-          `${s.fighter?.first_name ?? ""} ${s.fighter?.last_name ?? ""}`.trim() ||
-          s.fighter?.email ||
-          "Fighter",
-      }));
-      const traineeName = filteredFighter
-        ? `${filteredFighter.first_name ?? ""} ${filteredFighter.last_name ?? ""}`.trim() ||
-          filteredFighter.email
-        : "All linked fighters (see fighter_name on each session below)";
-
-      const res = await fetch("/api/ai/insights", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? {} : {}),
-        },
-        body: JSON.stringify({
-          sessions: sessionsForAi,
-          traineeName: traineeName || undefined,
-          coachGoal: coachGoal.trim() || undefined,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setAiError(data.message || "Could not generate plan.");
-        return;
-      }
-      setAiInsights(data.insights || "");
-    } catch {
-      setAiError("Network error.");
-    } finally {
-      setAiLoading(false);
-    }
-  }
-
   return (
     <>
       {myCoachCode ? (
@@ -250,19 +197,31 @@ export default function CoachDashboardPage() {
             Coach dashboard
           </h1>
           <p className="mt-1 text-sm text-[var(--slate)]">
-            View fighter sessions, add coach comments (communication), and generate a training plan with AI.
+            View fighter sessions and add coach comments. Use AI training plans on the insights page.
           </p>
         </div>
 
-        <Link
-          href="/coach/students"
-          className="inline-flex w-full items-center justify-center rounded-full bg-[var(--clay)] px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 sm:w-auto"
-        >
-          Manage fighters
-        </Link>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Link
+            href={
+              filterFighterId != null
+                ? `/coach/insights?fighterId=${encodeURIComponent(String(filterFighterId))}`
+                : "/coach/insights"
+            }
+            className="inline-flex w-full items-center justify-center rounded-full bg-[var(--ochre)] px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 sm:w-auto"
+          >
+            AI training plans
+          </Link>
+          <Link
+            href="/coach/students"
+            className="inline-flex w-full items-center justify-center rounded-full bg-[var(--clay)] px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 sm:w-auto"
+          >
+            Manage fighters
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(260px,0.42fr)_1fr] lg:gap-10">
         <div className="space-y-6">
           <section className="rounded-3xl bg-[var(--rain)]/90 p-6 shadow-sm ring-1 ring-[var(--storm-blue)]/10">
             <h2 className="text-lg font-semibold text-[var(--storm-blue)]">Filter by fighter</h2>
@@ -322,40 +281,6 @@ export default function CoachDashboardPage() {
                 })}
               </ul>
             )}
-          </section>
-
-          <section className="rounded-3xl bg-[var(--stone)] p-6 shadow-sm ring-1 ring-[var(--storm-blue)]/10">
-            <h2 className="text-lg font-semibold text-[var(--storm-blue)]">AI plan for trainees</h2>
-            <p className="mt-2 text-sm text-[var(--slate)]">
-              Uses up to 40 of the sessions shown on the right (respects your fighter filter).
-            </p>
-
-            <label className="mt-4 block text-sm font-semibold text-[var(--storm-blue)]">
-              Coaching goal (optional)
-            </label>
-            <textarea
-              value={coachGoal}
-              onChange={(e) => setCoachGoal(e.target.value)}
-              placeholder="Example: Improve clinch control and conditioning..."
-              className="mt-2 w-full resize-y rounded-2xl bg-[var(--rain)]/60 px-4 py-3 text-sm text-[var(--storm-blue)] placeholder:text-[var(--storm-blue)]/70 focus:outline-none focus:ring-2 focus:ring-[var(--storm-blue)]"
-              rows={3}
-            />
-
-            <button
-              type="button"
-              disabled={aiLoading || sessionsLoading || displaySessions.length === 0}
-              onClick={generatePlan}
-              className="mt-4 w-full rounded-full bg-[var(--ochre)] px-5 py-3 text-base font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {aiLoading ? "Generating..." : "Generate plan"}
-            </button>
-
-            {aiError ? <p className="mt-3 text-sm font-medium text-red-800">{aiError}</p> : null}
-            {aiInsights ? (
-              <pre className="mt-4 whitespace-pre-wrap rounded-2xl bg-white/60 p-4 text-sm text-[var(--storm-blue)] ring-1 ring-[var(--storm-blue)]/10">
-                {aiInsights}
-              </pre>
-            ) : null}
           </section>
         </div>
 
