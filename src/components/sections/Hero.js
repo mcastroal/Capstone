@@ -86,16 +86,6 @@ export default function Hero() {
             Get Started
             <ArrowRightIcon className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
-          <Link
-            href="#learn-more"
-            className="rounded-full px-8 py-4 text-lg font-semibold backdrop-blur-sm ring-1 ring-[var(--storm-blue)]/20 transition-all duration-200 hover:bg-white/90"
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.7)",
-              color: "var(--storm-blue)",
-            }}
-          >
-            Learn More
-          </Link>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-8">
